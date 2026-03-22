@@ -1,0 +1,27 @@
+server:
+  port: 8084
+
+spring:
+  # Mensajería NO tiene base de datos propia (solo SMS vía Twilio)
+  # Excluir autoconfiguración JPA/DataSource para evitar errores de arranque
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+# JWT – misma clave secreta compartida con todos los microservicios
+security:
+  jwt:
+    secret: ${JWT_SECRET:pragma_super_secret_key_change_in_production}
+    expiration: 86400000   # 24 horas en ms
+
+# Twilio – credenciales inyectadas vía variables de entorno (nunca hardcoded)
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  from-number: ${TWILIO_FROM_NUMBER:}
+  # Modo mock: cuando es true no llama a Twilio real (útil en dev/CI)
+  mock-enabled: ${TWILIO_MOCK_ENABLED:true}
+
+appDescription: "Pragma Mensajeria Microservice"
+appVersion: "1.0.0"
