@@ -1,33 +1,34 @@
 package com.pragma.powerup.application.handler.impl;
 
-import com.pragma.powerup.application.dto.request.ObjectRequestDto;
-import com.pragma.powerup.application.dto.response.ObjectResponseDto;
+import com.pragma.powerup.application.dto.request.SendSmsRequestDto;
+import com.pragma.powerup.application.dto.response.SendSmsResponseDto;
 import com.pragma.powerup.application.handler.IObjectHandler;
-import com.pragma.powerup.application.mapper.IObjectRequestMapper;
-import com.pragma.powerup.application.mapper.IObjectResponseMapper;
-import com.pragma.powerup.domain.api.IObjectServicePort;
-import com.pragma.powerup.domain.model.ObjectModel;
+import com.pragma.powerup.domain.api.ISmsServicePort;
+import com.pragma.powerup.domain.model.SmsMessageModel;
+import com.pragma.powerup.domain.model.SmsSendResultModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ObjectHandler implements IObjectHandler {
 
-    private final IObjectServicePort objectServicePort;
-    private final IObjectRequestMapper objectRequestMapper;
-    private final IObjectResponseMapper objectResponseMapper;
+    private final ISmsServicePort smsServicePort;
 
     @Override
-    public void saveObject(ObjectRequestDto objectRequestDto) {
-        ObjectModel objectModel = objectRequestMapper.toObject(objectRequestDto);
-        objectServicePort.saveObject(objectModel);
-    }
-
-    @Override
-    public List<ObjectResponseDto> getAllObjects() {
-        return objectResponseMapper.toResponseList(objectServicePort.getAllObjects());
+    public SendSmsResponseDto sendSms(SendSmsRequestDto sendSmsRequestDto) {
+        SmsMessageModel smsMessageModel = new SmsMessageModel(
+                sendSmsRequestDto.getPhoneNumber(),
+                sendSmsRequestDto.getMessage());
+        SmsSendResultModel resultModel = smsServicePort.sendSms(smsMessageModel);
+        return SendSmsResponseDto.builder()
+                .sent(resultModel.isSent())
+                .provider(resultModel.getProvider())
+                .messageId(resultModel.getMessageId())
+                .mockProvider(resultModel.isMockProvider())
+                .retryable(resultModel.isRetryable())
+                .errorCode(resultModel.getErrorCode())
+                .errorMessage(resultModel.getErrorMessage())
+                .build();
     }
 }

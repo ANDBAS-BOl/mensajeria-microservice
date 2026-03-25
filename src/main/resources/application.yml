@@ -22,6 +22,9 @@ twilio:
   from-number: ${TWILIO_FROM_NUMBER:}
   # Modo mock: cuando es true no llama a Twilio real (útil en dev/CI)
   mock-enabled: ${TWILIO_MOCK_ENABLED:true}
+  # Reintentos para fallos transitorios del proveedor
+  retry-max-attempts: ${TWILIO_RETRY_MAX_ATTEMPTS:3}
+  retry-delay-ms: ${TWILIO_RETRY_DELAY_MS:300}
 
 appDescription: "Pragma Mensajeria Microservice"
 appVersion: "1.0.0"

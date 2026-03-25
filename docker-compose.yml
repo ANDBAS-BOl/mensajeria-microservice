@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  mensajeria:
+    container_name: pragma-mensajeria
+    build: .
+    ports:
+      - "8084:8084"
+    environment:
+      JWT_SECRET: pragma_super_secret_key_change_in_production
+      TWILIO_MOCK_ENABLED: "true"
+    networks:
+      - pragma-net
+
+networks:
+  pragma-net:
+    external: true
+
