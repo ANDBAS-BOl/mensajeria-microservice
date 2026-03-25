@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mensajeria:
     container_name: pragma-mensajeria
