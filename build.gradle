@@ -35,6 +35,8 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
 	developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
 	testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+	testImplementation "org.springframework.security:spring-security-test"
+	testImplementation "com.tngtech.archunit:archunit-junit5:1.1.0"
 
 	// Twilio SDK para envío de SMS
 	implementation "com.twilio.sdk:twilio:${twilioVersion}"
@@ -55,8 +57,81 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
 }
 
-test {
-	finalizedBy jacocoTestReport
+jacoco {
+	toolVersion = "0.8.9"
 }
+
+def jacocoExclusions = [
+		'**/MensajeriaApplication.*',
+		'**/infrastructure/configuration/**',
+		'**/infrastructure/exceptionhandler/**',
+		'**/infrastructure/security/**',
+		'**/infrastructure/documentation/**',
+		'**/application/dto/**',
+		'**/domain/exception/**',
+		'**/*MapperImpl*'
+]
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+		xml.required  = true
+		csv.required  = true
+		html.outputLocation = layout.buildDirectory.dir('reports/jacoco/html')
+		xml.outputLocation  = layout.buildDirectory.file('reports/jacoco/jacoco.xml')
+		csv.outputLocation  = layout.buildDirectory.file('reports/jacoco/jacoco.csv')
+	}
+	classDirectories.setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: jacocoExclusions)
+			})
+	)
+}
+
+jacocoTestCoverageVerification {
+	dependsOn test
+	classDirectories.setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: jacocoExclusions)
+			})
+	)
+	violationRules {
+		rule {
+			element = 'BUNDLE'
+			limit {
+				counter = 'INSTRUCTION'
+				value   = 'COVEREDRATIO'
+				minimum = 0.30
+			}
+			limit {
+				counter = 'BRANCH'
+				value   = 'COVEREDRATIO'
+				minimum = 0.35
+			}
+		}
+		rule {
+			element = 'PACKAGE'
+			includes = ['com.pragma.powerup.mensajeria.domain.usecase']
+			limit {
+				counter = 'INSTRUCTION'
+				value   = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+			limit {
+				counter = 'BRANCH'
+				value   = 'COVEREDRATIO'
+				minimum = 0.75
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
